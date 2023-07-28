@@ -44,4 +44,19 @@ app.get("/inventory/:id", (req, res) => {
         })
 });
 
+// DELETE an Inventory Item
+app.delete("/inventory/:id", (req, res) => {
+    const inventoryItem = req.params.id;
+
+    knex("inventories")
+        .where({ id: inventoryItem })
+        .del()
+        .then(() => {
+            res.json("Successfully deleted inventory item")
+        })
+        .catch((err) => {
+            res.status(500).send("Error deleting inventory item");
+        })
+});
+
 app.listen(PORT, () => console.log("App is listening on port 8081"));
