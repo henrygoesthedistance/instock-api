@@ -23,4 +23,25 @@ app.get("/inventory", (req, res) => {
         })
 });
 
+// GET a Single Inventory Item
+app.get("/inventory/:id", (req, res) => {
+    const inventoryItem = req.params.id;
+
+    knex
+        .select("*")
+        .from("inventories")
+        .where({ id: inventoryItem })
+        .first()
+        .then((data) => {
+            if (data) {
+                res.json(data);
+            } else {
+                res.status(404).send("Inventory item not found");
+            }
+        })
+        .catch((err) => {
+            res.status(500).send("Error getting inventory");
+        })
+});
+
 app.listen(PORT, () => console.log("App is listening on port 8081"));
