@@ -44,4 +44,58 @@ app.get("/inventory/:id", (req, res) => {
         })
 });
 
+// GET request to filter the search term for the Warehouses List
+app.get("/api/warehouses", (req, res) => {
+    const searchBox = req.query.s;
+
+    knex("warehouses")
+        .where(function () {
+            this
+                .where('warehouse_name', 'LIKE', `%${searchBox}%`)
+                .orWhere('address', 'LIKE', `%${searchBox}%`)
+                .orWhere('city', 'LIKE', `%${searchBox}%`)
+                .orWhere('country', 'LIKE', `%${searchBox}%`)
+                .orWhere('contact_name', 'LIKE', `%${searchBox}%`)
+                .orWhere('contact_position', 'LIKE', `%${searchBox}%`)
+                .orWhere('contact_phone', 'LIKE', `%${searchBox}%`)
+                .orWhere('contact_email', 'LIKE', `%${searchBox}%`)
+        })
+        .select('*')
+        .then((data) => {
+            if (data) {
+                res.json(data);
+            } else {
+                res.status(404).send("Warehouse item not found");
+            }
+        })
+        .catch((err) => {
+            res.status(500).send("Error finding warehouse item");
+        })
+});
+
+// GET request to filter the search term for the Inventory List
+app.get("/api/inventories", (req, res) => {
+    const searchBox = req.query.s;
+
+    knex("inventories")
+        .where(function () {
+            this
+                .where('item_name', 'LIKE', `%${searchBox}%`)
+                .orWhere('warehouse_id', 'LIKE', `%${searchBox}%`)
+                .orWhere('category', 'LIKE', `%${searchBox}%`)
+                .orWhere('description', 'LIKE', `%${searchBox}%`)
+        })
+        .select('*')
+        .then((data) => {
+            if (data) {
+                res.json(data);
+            } else {
+                res.status(404).send("Inventory item not found");
+            }
+        })
+        .catch((err) => {
+            res.status(500).send("Error finding inventory item");
+        })
+});
+
 app.listen(PORT, () => console.log("App is listening on port 8081"));
