@@ -44,6 +44,21 @@ app.get("/inventory/:id", (req, res) => {
         })
 });
 
+// DELETE an Inventory Item
+app.delete("/inventory/:id", (req, res) => {
+    const inventoryItem = req.params.id;
+
+    knex("inventories")
+        .where({ id: inventoryItem })
+        .del()
+        .then(() => {
+            res.json("Successfully deleted inventory item")
+        })
+        .catch((err) => {
+            res.status(500).send("Error deleting inventory item");
+        })
+});
+
 // GET request to filter the search term for the Warehouses List
 app.get("/api/warehouses", (req, res) => {
     const searchBox = req.query.s;
