@@ -23,6 +23,7 @@ app.get("/inventory", (req, res) => {
         })
 });
 
+
 // GET a Single Inventory Item
 app.get("/inventory/:id", (req, res) => {
     const inventoryItem = req.params.id;
@@ -111,6 +112,20 @@ app.get("/api/inventories", (req, res) => {
         .catch((err) => {
             res.status(500).send("Error finding inventory item");
         })
+});
+
+// DELETE a warehouse
+app.delete('/warehouses/:id', (req, res) => {
+    knex('warehouse')
+      .delete()
+      .where({ id: req.params.id })
+      .then(() => {
+        // For DELETE response we can use 204 status code
+        res.status(204).send(`Warehouse with id: ${req.params.id} has been deleted`);
+      })
+      .catch((err) => {
+        res.status(400).send(`Error deleting Warehouse ${req.params.id} ${err}`)
+        });
 });
 
 app.listen(PORT, () => console.log("App is listening on port 8081"));
