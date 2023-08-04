@@ -1,22 +1,24 @@
+//call dotenv, express,cors module
 require('dotenv').config();
 const express = require('express');
 const app = express();
 const cors = require('cors');
+
+//setup the port
 const PORT = process.env.PORT || 5050;
-const warehousesRoute = require('./routes/warehouseRoute');
+
+//call the warehouse & inventory route 
+const warehouseRoute = require('./routes/warehouseRoute');
 const inventoryRoute = require('./routes/inventoryRoute');
 
 app.use(cors());
 app.use(express.json());
 
-
-app.get('/', (_req, res) => {
-    res.send('Warehouse & inventory database')
-});
-
-app.use('/warehouse', warehousesRoute);
+// warehouse & inventory homepage
+app.use('/warehouse', warehouseRoute);
 app.use('/inventory', inventoryRoute);
 
+//listen the port 
 app.listen(PORT, () => {
     console.log(`server running `)
 });
