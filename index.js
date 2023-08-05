@@ -3,12 +3,18 @@ require('dotenv').config();
 const knex = require("knex")(require("./knexfile"));
 const express = require("express");
 const cors = require("cors");
-const app = express();
-const PORT = process.env.PORT || 8081;
 
-app.use(cors({origin: process.env.BACKEND_URL || 'http://localhost'}));
+const app = express();
+const PORT = process.env.PORT || 8080;
+
+// app.use(cors({origin: process.env.BACKEND_URL } || 'http://localhost:8080'));
+// this doesn't work unknown reason
+
+app.use(cors());
 app.use(express.json());
 app.use(express.static('public'))
+
+
 
 // GET List of all Inventory Items
 app.get("/inventory", (req, res) => {
@@ -22,7 +28,6 @@ app.get("/inventory", (req, res) => {
             res.status(500).send("Error getting inventory");
         })
 });
-
 
 // GET a Single Inventory Item
 app.get("/inventory/:id", (req, res) => {
@@ -58,6 +63,28 @@ app.delete("/inventory/:id", (req, res) => {
         .catch((err) => {
             res.status(500).send("Error deleting inventory item");
         })
+});
+
+// GET request to provide the front-end with a list of all inventories for a given warehouse ID
+
+app.get("/api/warehouses/:id/inventories", (req, res) => {
+    const warehouseId = req.params.id;
+
+    knex.select('warehouses.id', 'inventories.item_name', 'inventories.category', 'inventories.status', 'inventories.quantity')
+        .from('warehouses')
+        .join('inventories', 'warehouses.id', '=', 'inventories.warehouse_id')
+        .where('warehouses.id', warehouseId)
+        .then((data) => {
+            if (data.length > 0) {
+                res.status(200).json(data);
+            } else {
+                res.status(404).send("Warehouse ID not found");
+            }
+        })
+        .catch((err) => {
+            console.error(err);
+            res.status(500).send("Error");
+        });
 });
 
 // GET request to filter the search term for the Warehouses List
@@ -114,49 +141,4 @@ app.get("/api/inventories", (req, res) => {
         })
 });
 
-// frontend (POST): /warehouses (add the req body of the new warehouse)
-app.post('/warehouses', (req, res) => {
-    // Validate the request body for required data
-    if (!req.body.name || !req.body.address || !req.body.city || !req.body.country || !req.body.contactName || !req.body.position || !req.body.phoneNumber || !req.body.email) {
-      return res.status(400).send('Please make sure to provide all the info');
-    }
-  
-    knex('warehouses')
-      .insert(req.body)
-      .then((data) => {
-        // For POST requests we need to respond with 201 and the location of the newly created record
-        const newWarehouseURL = `/warehouses/${data[0]}`;
-        res.status(201).location(newWarehouseURL).send(newWarehouseURL);
-      })
-      .catch((err) => res.status(400).send(`Error creating Warehouse: ${err}`));
-});
-
-// DELETE a warehouse
-app.delete('/warehouses/:id', (req, res) => {
-    knex('warehouses')
-      .delete()
-      .where({ id: req.params.id })
-      .then(() => {
-        // For DELETE response we can use 204 status code
-        res.status(204).send(`Warehouse with id: ${req.params.id} has been deleted`);
-      })
-      .catch((err) => {
-        res.status(400).send(`Error deleting Warehouse ${req.params.id} ${err}`)
-        });
-});
-
-// Update a warehouse (PUT)
-app.put('/warehouses/:id', (req, res) => {
-    knex('warehouses')
-        .update(req.body)
-        .where({ id: req.params.id })
-        .then(() => {
-            // For DELETE response we can use 204 status code
-            res.status(200).send(`Warehouse with id: ${req.params.id} has been updated`);
-        })
-        .catch((err) => {
-            res.status(400).send(`Error updating Warehouse ${req.params.id} ${err}`)
-        });
-  });
-
-app.listen(PORT, () => console.log("App is listening on port 8081"));
+app.listen(PORT, () => console.log("App is listening on port 8080"));
