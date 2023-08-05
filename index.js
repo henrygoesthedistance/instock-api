@@ -114,6 +114,23 @@ app.get("/api/inventories", (req, res) => {
         })
 });
 
+// frontend (POST): /warehouses (add the req body of the new warehouse)
+app.post('/warehouses', (req, res) => {
+    // Validate the request body for required data
+    if (!req.body.name || !req.body.address || !req.body.city || !req.body.country || !req.body.contactName || !req.body.position || !req.body.phoneNumber || !req.body.email) {
+      return res.status(400).send('Please make sure to provide all the info');
+    }
+  
+    knex('warehouses')
+      .insert(req.body)
+      .then((data) => {
+        // For POST requests we need to respond with 201 and the location of the newly created record
+        const newWarehouseURL = `/warehouses/${data[0]}`;
+        res.status(201).location(newWarehouseURL).send(newWarehouseURL);
+      })
+      .catch((err) => res.status(400).send(`Error creating Warehouse: ${err}`));
+});
+
 // DELETE a warehouse
 app.delete('/warehouses/:id', (req, res) => {
     knex('warehouses')
