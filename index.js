@@ -116,7 +116,7 @@ app.get("/api/inventories", (req, res) => {
 
 // DELETE a warehouse
 app.delete('/warehouses/:id', (req, res) => {
-    knex('warehouse')
+    knex('warehouses')
       .delete()
       .where({ id: req.params.id })
       .then(() => {
@@ -130,7 +130,7 @@ app.delete('/warehouses/:id', (req, res) => {
 
 // Update a warehouse (PUT)
 app.put('/warehouses/:id', (req, res) => {
-    knex('warehouse')
+    knex('warehouses')
         .update(req.body)
         .where({ id: req.params.id })
         .then(() => {
