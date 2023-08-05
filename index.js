@@ -1,8 +1,9 @@
-require('dotenv').config();
+require("dotenv").config();
 
 const knex = require("knex")(require("./knexfile"));
 const express = require("express");
 const cors = require("cors");
+const { v4: uuidv4 } = require("uuid");
 
 const app = express();
 const PORT = process.env.PORT || 8080;
@@ -12,133 +13,194 @@ const PORT = process.env.PORT || 8080;
 
 app.use(cors());
 app.use(express.json());
-app.use(express.static('public'))
-
-
+app.use(express.static("public"));
 
 // GET List of all Inventory Items
 app.get("/inventory", (req, res) => {
-    knex
-        .select("*")
-        .from("inventories")
-        .then((data) => {
-            res.json(data);
-        })
-        .catch((err) => {
-            res.status(500).send("Error getting inventory");
-        })
+  knex
+    .select("*")
+    .from("inventories")
+    .then((data) => {
+      res.json(data);
+    })
+    .catch((err) => {
+      res.status(500).send("Error getting inventory");
+    });
 });
 
 // GET a Single Inventory Item
 app.get("/inventory/:id", (req, res) => {
-    const inventoryItem = req.params.id;
+  const inventoryItem = req.params.id;
 
-    knex
-        .select("*")
-        .from("inventories")
-        .where({ id: inventoryItem })
-        .first()
-        .then((data) => {
-            if (data) {
-                res.json(data);
-            } else {
-                res.status(404).send("Inventory item not found");
-            }
-        })
-        .catch((err) => {
-            res.status(500).send("Error getting inventory");
-        })
+  knex
+    .select("*")
+    .from("inventories")
+    .where({ id: inventoryItem })
+    .first()
+    .then((data) => {
+      if (data) {
+        res.json(data);
+      } else {
+        res.status(404).send("Inventory item not found");
+      }
+    })
+    .catch((err) => {
+      res.status(500).send("Error getting inventory");
+    });
 });
 
 // DELETE an Inventory Item
 app.delete("/inventory/:id", (req, res) => {
-    const inventoryItem = req.params.id;
+  const inventoryItem = req.params.id;
 
-    knex("inventories")
-        .where({ id: inventoryItem })
-        .del()
-        .then(() => {
-            res.json("Successfully deleted inventory item")
-        })
-        .catch((err) => {
-            res.status(500).send("Error deleting inventory item");
-        })
+  knex("inventories")
+    .where({ id: inventoryItem })
+    .del()
+    .then(() => {
+      res.json("Successfully deleted inventory item");
+    })
+    .catch((err) => {
+      res.status(500).send("Error deleting inventory item");
+    });
 });
 
 // GET request to provide the front-end with a list of all inventories for a given warehouse ID
 
 app.get("/api/warehouses/:id/inventories", (req, res) => {
-    const warehouseId = req.params.id;
+  const warehouseId = req.params.id;
 
-    knex.select('warehouses.id', 'inventories.item_name', 'inventories.category', 'inventories.status', 'inventories.quantity')
-        .from('warehouses')
-        .join('inventories', 'warehouses.id', '=', 'inventories.warehouse_id')
-        .where('warehouses.id', warehouseId)
-        .then((data) => {
-            if (data.length > 0) {
-                res.status(200).json(data);
-            } else {
-                res.status(404).send("Warehouse ID not found");
-            }
-        })
-        .catch((err) => {
-            console.error(err);
-            res.status(500).send("Error");
-        });
+  knex
+    .select(
+      "warehouses.id",
+      "inventories.item_name",
+      "inventories.category",
+      "inventories.status",
+      "inventories.quantity"
+    )
+    .from("warehouses")
+    .join("inventories", "warehouses.id", "=", "inventories.warehouse_id")
+    .where("warehouses.id", warehouseId)
+    .then((data) => {
+      if (data.length > 0) {
+        res.status(200).json(data);
+      } else {
+        res.status(404).send("Warehouse ID not found");
+      }
+    })
+    .catch((err) => {
+      console.error(err);
+      res.status(500).send("Error");
+    });
 });
 
 // GET request to filter the search term for the Warehouses List
 app.get("/api/warehouses", (req, res) => {
-    const searchBox = req.query.s;
+  const searchBox = req.query.s;
 
-    knex("warehouses")
-        .where(function () {
-            this
-                .where('warehouse_name', 'LIKE', `%${searchBox}%`)
-                .orWhere('address', 'LIKE', `%${searchBox}%`)
-                .orWhere('city', 'LIKE', `%${searchBox}%`)
-                .orWhere('country', 'LIKE', `%${searchBox}%`)
-                .orWhere('contact_name', 'LIKE', `%${searchBox}%`)
-                .orWhere('contact_position', 'LIKE', `%${searchBox}%`)
-                .orWhere('contact_phone', 'LIKE', `%${searchBox}%`)
-                .orWhere('contact_email', 'LIKE', `%${searchBox}%`)
-        })
-        .select('*')
-        .then((data) => {
-            if (data) {
-                res.json(data);
-            } else {
-                res.status(404).send("Warehouse item not found");
-            }
-        })
-        .catch((err) => {
-            res.status(500).send("Error finding warehouse item");
-        })
+  knex("warehouses")
+    .where(function () {
+      this.where("warehouse_name", "LIKE", `%${searchBox}%`)
+        .orWhere("address", "LIKE", `%${searchBox}%`)
+        .orWhere("city", "LIKE", `%${searchBox}%`)
+        .orWhere("country", "LIKE", `%${searchBox}%`)
+        .orWhere("contact_name", "LIKE", `%${searchBox}%`)
+        .orWhere("contact_position", "LIKE", `%${searchBox}%`)
+        .orWhere("contact_phone", "LIKE", `%${searchBox}%`)
+        .orWhere("contact_email", "LIKE", `%${searchBox}%`);
+    })
+    .select("*")
+    .then((data) => {
+      if (data) {
+        res.json(data);
+      } else {
+        res.status(404).send("Warehouse item not found");
+      }
+    })
+    .catch((err) => {
+      res.status(500).send("Error finding warehouse item");
+    });
 });
 
 // GET request to filter the search term for the Inventory List
 app.get("/api/inventories", (req, res) => {
-    const searchBox = req.query.s;
+  const searchBox = req.query.s;
 
-    knex("inventories")
-        .where(function () {
-            this
-                .where('item_name', 'LIKE', `%${searchBox}%`)
-                .orWhere('warehouse_id', 'LIKE', `%${searchBox}%`)
-                .orWhere('category', 'LIKE', `%${searchBox}%`)
-                .orWhere('description', 'LIKE', `%${searchBox}%`)
-        })
-        .select('*')
-        .then((data) => {
-            if (data) {
-                res.json(data);
-            } else {
-                res.status(404).send("Inventory item not found");
+  knex("inventories")
+    .where(function () {
+      this.where("item_name", "LIKE", `%${searchBox}%`)
+        .orWhere("warehouse_id", "LIKE", `%${searchBox}%`)
+        .orWhere("category", "LIKE", `%${searchBox}%`)
+        .orWhere("description", "LIKE", `%${searchBox}%`);
+    })
+    .select("*")
+    .then((data) => {
+      if (data) {
+        res.json(data);
+      } else {
+        res.status(404).send("Inventory item not found");
+      }
+    })
+    .catch((err) => {
+      res.status(500).send("Error finding inventory item");
+    });
+});
+
+// POST request for the creation of  a new inventory item attached to a given warehouse
+app.post('/api/inventories', (req, res) => {
+    const {
+        warehouse_id,
+        item_name,
+        description,
+        category,
+        status,
+        quantity
+    } = req.body;
+
+    // Validate required properties
+    if (!warehouse_id || !item_name || !description || !category || !status || !quantity) {
+        return res.status(400).json({ error: 'Missing properties in the request body' });
+    }
+
+    // Check if warehouse_id exists in the warehouses table
+    knex('warehouses')
+        .where('id', warehouse_id)
+        .first()
+        .then(warehouse => {
+            if (!warehouse) {
+                return res.status(400).json({ error: 'Invalid warehouse_id' });
             }
+
+            // Check if quantity is a valid number
+            if (isNaN(quantity)) {
+                return res.status(400).json({ error: 'Quantity must be a number' });
+            }
+
+            // Generate a UUID for the new inventory item
+            const newInventoryId = uuidv4();
+
+            const insertedInventory = {
+                id: newInventoryId,
+                warehouse_id,
+                item_name,
+                description,
+                category,
+                status,
+                quantity: parseFloat(quantity),
+            }
+
+
+            // Insert the new inventory item into the inventories table
+            return knex('inventories')
+                .insert(insertedInventory)
+                .then(
+                    res.status(201).json(insertedInventory)
+                    )
+                .catch(err => {
+                    console.error(err);
+                    res.status(500).json({ error: 'Internal server error' });
+                });
         })
-        .catch((err) => {
-            res.status(500).send("Error finding inventory item");
-        })
+
 });
 
 app.listen(PORT, () => console.log("App is listening on port 8080"));
