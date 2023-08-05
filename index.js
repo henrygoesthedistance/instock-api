@@ -116,7 +116,7 @@ app.get("/api/inventories", (req, res) => {
 
 // DELETE a warehouse
 app.delete('/warehouses/:id', (req, res) => {
-    knex('warehouse')
+    knex('warehouses')
       .delete()
       .where({ id: req.params.id })
       .then(() => {
@@ -127,5 +127,19 @@ app.delete('/warehouses/:id', (req, res) => {
         res.status(400).send(`Error deleting Warehouse ${req.params.id} ${err}`)
         });
 });
+
+// Update a warehouse (PUT)
+app.put('/warehouses/:id', (req, res) => {
+    knex('warehouses')
+        .update(req.body)
+        .where({ id: req.params.id })
+        .then(() => {
+            // For DELETE response we can use 204 status code
+            res.status(200).send(`Warehouse with id: ${req.params.id} has been updated`);
+        })
+        .catch((err) => {
+            res.status(400).send(`Error updating Warehouse ${req.params.id} ${err}`)
+        });
+  });
 
 app.listen(PORT, () => console.log("App is listening on port 8081"));
